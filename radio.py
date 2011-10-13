@@ -20,20 +20,20 @@ afspillerprogram = "mplayer"
 
 
 # * Oplysninger om kanaler. Skal laeses paa foelgende maade
-# * ("Forkortelse","Url-Til-lyd","Beskrivelse")
+# * ("Forkortelse","Url-Til-lyd","Beskrivelse",copyright-for-stream)
 oversigt = [
   # * Alle DR radio kanaler
-  ( "drp1",  "http://live-icy.gss.dr.dk:8000/Channel3_HQ.mp3", "Danmarks Radio P1" ),
-  ( "drp2",  "http://live-icy.gss.dr.dk:8000/Channel4_HQ.mp3", "Danmarks Radio P2" ),
-  ( "drp3", "http://live-icy.gss.dr.dk:8000/Channel5_HQ.mp3", "Danmarks Radio P3"),
-  ( "drp4syd", "http://live-icy.gss.dr.dk:8000/Channel12_HQ.mp3", "Danmarks Radio P4 Syd"),
-  ( "drp7", "http://live-icy.gss.dr.dk:8000/Channel21_HQ.mp3", "Danmarks Radio P7"),
+  ( "drp1",  "http://live-icy.gss.dr.dk:8000/Channel3_HQ.mp3", "Danmarks Radio P1","Danmarks Radio" ),
+  ( "drp2",  "http://live-icy.gss.dr.dk:8000/Channel4_HQ.mp3", "Danmarks Radio P2","Danmarks Radio" ),
+  ( "drp3", "http://live-icy.gss.dr.dk:8000/Channel5_HQ.mp3", "Danmarks Radio P3","Danmarks Radio"),
+  ( "drp4syd", "http://live-icy.gss.dr.dk:8000/Channel12_HQ.mp3", "Danmarks Radio P4 Syd","Danmarks Radio"),
+  ( "drp7", "http://live-icy.gss.dr.dk:8000/Channel21_HQ.mp3", "Danmarks Radio P7","Danmarks Radio"),
 
   # * Andre
-  ("radiomojn", "http://mojn.radiostreaming.dk:8050/mojn.m3u","Radio Mojn Soenderjyllands foerende radiostation"),
+  ("radiomojn", "http://mojn.radiostreaming.dk:8050/mojn.m3u","Radio Mojn Soenderjyllands foerende radiostation","Radio Mojn"),
   ("novafm", "http://stream.novafm.dk/nova128.m3u", "Nova FM"),
   ("skalafm", "http://skala.radiostreaming.dk/Skala128.m3u","Skala FM"),
-  ("thevoice", "http://stream.voice.dk/voice128","The Voice Danmarks Hitstation."),  
+  ("thevoice", "http://stream.voice.dk/voice128","The Voice Danmarks Hitstation.", "The Voice"),  
   ]
 
 # * Alt vedr. hjaelp funktionen
@@ -60,18 +60,28 @@ def help(helpfunktion):
 
 # * Alt vedr. selve afspillingen
 def afspil(radiokanalvalg):
+  
   for radiokanal in oversigt:
-    if radiokanal[0] == radiokanalvalg:      
+    if radiokanal[0] == radiokanalvalg:
+      stationfundet = "ja"
+      
       print "*************************************************"
       print " - Du lytter til: " + radiokanal[2]
       print " - Du afspiller med: " + afspillerprogram
+      print " "
+      print " - Copyright (Program): GPLv2"
+      print " - Copyright (Stream): " + radiokanal[3]
       print "*************************************************"
       print "Tryk Ctrl+C eller q for at stoppe afspillingen"
       
       player_choice_and_radio_station = afspillerprogram + " " + radiokanal[1]
       p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
       output = p.stdout.read()
-    else:
+      
+      stationfundet = "nej"
+ 
+  # * Hvis radiokanalen ikke blev fundet, da viser den listen over kanaler
+  if stationfundet == "nej":
       help("afspil")
 
 # * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
@@ -91,11 +101,15 @@ peterlyberthtesten(afspillerprogram)
 try:
   if hovedfunktion == "afspil":
     afspil(underfunktion)
+  else:
+    pass
 except NameError:
     help("afspil")
 
 try:
   if hovedfunktion == "help":
     help(underfunktion)
+  else:
+    pass
 except NameError:
     help("alt")
