@@ -2,6 +2,10 @@ import sys
 from subprocess import Popen, PIPE, STDOUT
 import os
 
+# * Vaelg en afspiller, og udkommenter den anden. PT er valget mellem VLC eller mplayer
+afspillerprogram = "mplayer"
+#afspillerprogram = "vlc -I ncurses"
+
 
 #  * Saetter variablerne
 try:
@@ -14,9 +18,18 @@ try:
 except IndexError:
   pass
 
-# * Vaelg en afspiller, og udkommenter den anden. PT er valget mellem VLC eller mplayer
-afspillerprogram = "mplayer"
-#afspillerprogram = "vlc -I ncurses"
+# * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
+def peterlyberthtesten(afspillerprogram):
+    afspiller = afspillerprogram.split( )
+    if os.path.exists("/usr/bin/"+afspiller[0]):
+      pass
+    else:
+      print "\n"
+      print "*************************************..::Hey du!::..***********************************"
+      sys.exit("Fejl! Du har ikke afspillingsprogrammet " + afspiller[0] + " installeret. Installer det eller brug en anden afspiller \n")
+
+# * Tjekker om "systemmappen", altsaa den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
+peterlyberthtesten(afspillerprogram)
 
 
 # * Oplysninger om kanaler. Skal laeses paa foelgende maade
@@ -27,12 +40,23 @@ oversigt = [
   ( "drp2",  "http://live-icy.gss.dr.dk:8000/Channel4_HQ.mp3", "Danmarks Radio P2","Danmarks Radio" ),
   ( "drp3", "http://live-icy.gss.dr.dk:8000/Channel5_HQ.mp3", "Danmarks Radio P3","Danmarks Radio"),
   ( "drp4syd", "http://live-icy.gss.dr.dk:8000/Channel12_HQ.mp3", "Danmarks Radio P4 Syd","Danmarks Radio"),
-  ( "drp7", "http://live-icy.gss.dr.dk:8000/Channel21_HQ.mp3", "Danmarks Radio P7","Danmarks Radio"),
+  ( "drp4fyn", "http://live-icy.gss.dr.dk:8000/Channel7_HQ.mp3", "Danmarks Radio P4 Fyn","Danmarks Radio" ),
+  ( "drp4kbh", "http://live-icy.gss.dr.dk:8000/Channel8_HQ.mp3", "Danmarks Radio P4 Koebenhavn","Danmarks Radio" ),
+  ( "drp4bornholm", "http://live-icy.gss.dr.dk:8000/Channel6_HQ.mp3", "Danmarks Radio P4 Bornholm","Danmarks Radio" ),
+  ( "drp4midtvest", "http://live-icy.gss.dr.dk:8000/Channel9_HQ.mp3", "Danmarks Radio P4 Midt & Vest","Danmarks Radio" ),
+  ( "drp4nord", "http://live-icy.gss.dr.dk:8000/Channel10_HQ.mp3", "Danmarks Radio P4 Nordjylland","Danmarks Radio" ),
+  ( "drp4sjaelland", "http://live-icy.gss.dr.dk:8000/Channel11_HQ.mp3", "Danmarks Radio P4 Sjaelland","Danmarks Radio" ),
+  ( "drp4trekanten", "http://live-icy.gss.dr.dk:8000/Channel13_HQ.mp3", "Danmarks Radio P4 Trekanten","Danmarks Radio" ),
+  ( "drp4oest", "http://live-icy.gss.dr.dk:8000/Channel14_HQ.mp3", "Danmarks Radio P4 Oestjylland","Danmarks Radio" ),
+  ( "drp5", "http://live-icy.gss.dr.dk:8000/Channel25_HQ.mp3", "Danmarks Radio P5","Danmarks Radio" ),
+  ( "drp6", "http://live-icy.gss.dr.dk:8000/Channel29_HQ.mp3", "Danmarks Radio P6 Beat","Danmarks Radio"),
+  ( "drp7", "http://live-icy.gss.dr.dk:8000/Channel21_HQ.mp3", "Danmarks Radio P7 Mix","Danmarks Radio"),
+  ( "drp8", "http://live-icy.gss.dr.dk:8000/Channel22_HQ.mp3", "Danmarks Radio P8 Jazz","Danmarks Radio"),
 
   # * Andre
   ("radiomojn", "http://mojn.radiostreaming.dk:8050/mojn.m3u","Radio Mojn Soenderjyllands foerende radiostation","Radio Mojn"),
-  ("novafm", "http://stream.novafm.dk/nova128.m3u", "Nova FM"),
-  ("skalafm", "http://skala.radiostreaming.dk/Skala128.m3u","Skala FM"),
+  ("novafm", "http://stream.novafm.dk/nova128.m3u", "Nova FM","Nova.FM"),
+  ("skalafm", "http://skala.radiostreaming.dk/Skala128.m3u","Skala.FM", "Skala.FM"),
   ("thevoice", "http://stream.voice.dk/voice128","The Voice Danmarks Hitstation.", "The Voice"),  
   ]
 
@@ -49,14 +73,22 @@ def help(helpfunktion):
    
   if helpfunktion == "kanaler":
     help("afspil")
-  
+        
   if helpfunktion == "alt":
     print ""
     print "Syntaks: radio <funktion>"
     print ""
     print "afspil	-	Afspiller en given radio kanal. Eksempel: radio afspil drp2"
-    print "help kanaler-	Viser en liste over kanaler"
+    print "help kanaler -	Viser en liste over kanaler"
+    print "indstil -	Lader dig bestemme hvilket program du vil bruge til at afspille med"
     print "help	-	Viser dig denne side over funktioner"  
+
+def indstil(indstilling):
+    if indstilling == "afspiller":
+      global afspillerprogram
+      afspillervalg = raw_input("Skriv navnet paa afspilleren du vil bruge: ")
+      afspillerprogram = config.afspillerprogrammer[afspillervalg]
+      #afspil("drp3")
 
 # * Alt vedr. selve afspillingen
 def afspil(radiokanalvalg):
@@ -84,18 +116,6 @@ def afspil(radiokanalvalg):
   if stationfundet == "nej":
       help("afspil")
 
-# * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
-def peterlyberthtesten(afspillerprogram):
-    afspiller = afspillerprogram.split( )
-    if os.path.exists("/usr/bin/"+afspiller[0]):
-      pass
-    else:
-      print "\n"
-      print "*************************************..::Hey du!::..***********************************"
-      sys.exit("Fejl! Du har ikke afspillingsprogrammet " + afspiller[0] + " installeret. Installer det eller brug en anden afspiller \n")
-
-# * Koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret
-peterlyberthtesten(afspillerprogram)
 
 # * Alt vedr. valg af funktion!
 try:
@@ -109,6 +129,14 @@ except NameError:
 try:
   if hovedfunktion == "help":
     help(underfunktion)
+  else:
+    pass
+except NameError:
+    help("alt")
+
+try:
+  if hovedfunktion == "indstil":
+    indstil(underfunktion)
   else:
     pass
 except NameError:
