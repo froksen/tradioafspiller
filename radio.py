@@ -52,12 +52,17 @@ oversigt = [
   ( "drp6", "http://live-icy.gss.dr.dk:8000/Channel29_HQ.mp3", "Danmarks Radio P6 Beat","Danmarks Radio"),
   ( "drp7", "http://live-icy.gss.dr.dk:8000/Channel21_HQ.mp3", "Danmarks Radio P7 Mix","Danmarks Radio"),
   ( "drp8", "http://live-icy.gss.dr.dk:8000/Channel22_HQ.mp3", "Danmarks Radio P8 Jazz","Danmarks Radio"),
+  ( "drmama", "http://live-icy.gss.dr.dk:8000/Channel18_HQ.mp3", "Danmarks Radio Mama","Danmarks Radio"),
+  ( "drdansk", "http://live-icy.gss.dr.dk:8000/Channel19_HQ.mp3", "Danmarks Radio Dansk Top","Danmarks Radio"),
+  ( "drrama", "http://live-icy.gss.dr.dk:8000/Channel24_HQ.mp3", "Danmarks Radio Ramasjang Radio","Danmarks Radio"),
+  ( "drklassisk", "http://live-icy.gss.dr.dk:8000/Channel23_HQ.mp3", "Danmarks Radio Klassisk","Danmarks Radio"),
+  ( "drnyheder", "http://live-icy.gss.dr.dk:8000/Channel2_HQ.mp3", "Danmarks Radio Nyheder","Danmarks Radio"),
 
   # * Andre
-  ("radiomojn", "http://mojn.radiostreaming.dk:8050/mojn.m3u","Radio Mojn Soenderjyllands foerende radiostation","Radio Mojn"),
+  ("radiomojn", "http://mojn.radiostreaming.dk:8050/mojn.m3u","Radio Mojn","Radio Mojn"),
   ("novafm", "http://stream.novafm.dk/nova128.m3u", "Nova FM","Nova.FM"),
   ("skalafm", "http://skala.radiostreaming.dk/Skala128.m3u","Skala.FM", "Skala.FM"),
-  ("thevoice", "http://stream.voice.dk/voice128","The Voice Danmarks Hitstation.", "The Voice"),  
+  ("thevoice", "http://stream.voice.dk/voice128","The Voice", "The Voice"),  
   ]
 
 # * Alt vedr. hjaelp funktionen
