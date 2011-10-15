@@ -1,13 +1,31 @@
 import sys 
 from subprocess import Popen, PIPE, STDOUT
 import os
+import time
 
-# * Vaelg en afspiller, og udkommenter den anden. PT er valget mellem VLC eller mplayer
-afspillerprogram = "mplayer"
-#afspillerprogram = "vlc -I ncurses"
+hjemmemappe = os.getenv("HOME")
+
+punktummappe = hjemmemappe + "/.tradioafspiller/"
+sys.path.append(punktummappe)
+  
+# * Standard opsaetningen for afspillere
+afspillerprogramstandard = "mplayer"
+afspillerprogramfallbackstandard = "vlc -I ncurses"
+
+# * Saetter hvilken der skal benyttes
+afspillerprogram = afspillerprogramstandard
+afspillerprogramfallback = afspillerprogramfallbackstandard
+
+# Hvis brugeren har brugt "indstil" funktionen og indtastet en anden afspiller, da vil det vare denne programmet bruger.
+try:
+  from brugervalg import afspillerprogram
+except ImportError:
+  pass
+except NameError:
+  pass
 
 
-#  * Saetter variablerne
+#  * Saetter variablerne fra terminal inputtet.
 try:
   hovedfunktion = sys.argv[1]
 except IndexError:
@@ -18,18 +36,7 @@ try:
 except IndexError:
   pass
 
-# * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
-def peterlyberthtesten(afspillerprogram):
-    afspiller = afspillerprogram.split( )
-    if os.path.exists("/usr/bin/"+afspiller[0]):
-      pass
-    else:
-      print "\n"
-      print "*************************************..::Hey du!::..***********************************"
-      sys.exit("Fejl! Du har ikke afspillingsprogrammet " + afspiller[0] + " installeret. Installer det eller brug en anden afspiller \n")
 
-# * Tjekker om "systemmappen", altsaa den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
-peterlyberthtesten(afspillerprogram)
 
 
 # * Oplysninger om kanaler. Skal laeses paa foelgende maade
@@ -65,6 +72,15 @@ oversigt = [
   ("thevoice", "http://stream.voice.dk/voice128","The Voice", "The Voice"),  
   ]
 
+
+def skrivtilfil(tekstfil,tekst):
+  fil = open(tekstfil, "w")
+  fil.write(tekst)
+  fil.close()
+
+def lavmappe(mappenavn):
+  os.mkdir(mappenavn)
+
 # * Alt vedr. hjaelp funktionen
 def help(helpfunktion):  
   if helpfunktion == "afspil":
@@ -90,10 +106,37 @@ def help(helpfunktion):
 
 def indstil(indstilling):
     if indstilling == "afspiller":
-      global afspillerprogram
+      print "*************************************************"
+      print " 		Indstilling af Afspiller"
+      print "*************************************************"
+      print "Her kan du indstille hvilke afspillere der bruges"
+      print "naar der afspilles en radiokanal. Baade som "
+      print "primaer og som fallback"
+      print ""
+      print "Du bruger PT. foelgende afspillere"
+      print " - Primaer afspiller: " + afspillerprogram
+      print " - Fallback afspiller: " + afspillerprogramfallback
+      print ""
+      print 'OBS: Hvis du vil benytte standard indstillingerne, skriv da "standard" (uden ") i felterne \n'
       afspillervalg = raw_input("Skriv navnet paa afspilleren du vil bruge: ")
-      afspillerprogram = config.afspillerprogrammer[afspillervalg]
-      #afspil("drp3")
+      afspillervalgfallback = raw_input("Skriv navnet paa afspilleren du vil bruge, som 'fallback' hvis " + afspillervalg + " ikke kan afspille: ")
+      
+      if afspillervalg == "standard":
+	afspillervalg = afspillerprogramstandard
+      if afspillervalgfallback == "standard":
+	afspillervalgfallback = afspillerprogramfallbackstandard
+      
+      # * Opretter punktmappen, hvis den ikke findes
+      try:
+	lavmappe(punktummappe)
+      except OSError:
+	pass
+      
+      # * Skriver valget til en fil.
+      fil = punktummappe + "brugervalg.py"
+      tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"'
+      
+      skrivtilfil(fil,tekst)
 
 # * Alt vedr. selve afspillingen
 def afspil(radiokanalvalg):
@@ -111,15 +154,65 @@ def afspil(radiokanalvalg):
       print "*************************************************"
       print "Tryk Ctrl+C eller q for at stoppe afspillingen"
       
+      # * Prover med den primaaere afspiller foerst
       player_choice_and_radio_station = afspillerprogram + " " + radiokanal[1]
       p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
       output = p.stdout.read()
       
+      print "*************************************************"
+      print " - Du lytter til: " + radiokanal[2]
+      print " - Du afspiller med (Fallback): " + afspillerprogramfallback
+      print " "
+      print " - Copyright (Program): GPLv2"
+      print " - Copyright (Stream): " + radiokanal[3]
+      print "*************************************************"
+      print "Tryk Ctrl+C eller q for at stoppe afspillingen"
+
+      # * Hvis primaere afspiller fejler, da bruger den fallback. 
+      player_choice_and_radio_station = afspillerprogramfallback + " " + radiokanal[1]
+      p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
+      output = p.stdout.read()
+
+
       stationfundet = "nej"
  
   # * Hvis radiokanalen ikke blev fundet, da viser den listen over kanaler
   if stationfundet == "nej":
       help("afspil")
+
+
+
+
+# * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
+def peterlyberthtesten(afspillerprogram):
+    afspiller = afspillerprogram.split( )
+    if os.path.exists("/usr/bin/"+afspiller[0]):
+      pass
+    else:
+      print "\n"
+      print "*************************************..::Hey du!::..***********************************"
+      print ("Fejl! Du har ikke afspillingsprogrammet " + afspiller[0] + " installeret. Installer programmet eller du kan benytte en anden afspiller \n")
+      print "1) Brug en anden afspiller"
+      print "2) Afslut programmet"
+      print ""
+      valg = raw_input("Skriv dit valg og afslut med at trykke med ENTER: ")
+      if valg == "1":
+	indstil("afspiller")
+      elif valg == "2":
+	print "Program afsluttet"
+	sys.exit()
+      else:
+	print ""
+	print ""
+	print "Du skal benytte dig af en af mulighederne i listen"
+	time.sleep(4)
+	peterlyberthtesten(afspillerprogram)
+
+# * Tjekker om "systemmappen", altsaa den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
+peterlyberthtesten(afspillerprogram)
+
+
+
 
 
 # * Alt vedr. valg af funktion!
