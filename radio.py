@@ -94,7 +94,13 @@ def help(helpfunktion):
    
   if helpfunktion == "kanaler":
     help("afspil")
-        
+  
+  if helpfunktion == "indstil":
+    print ""
+    print "Syntaks: radio indstil <funktion>"
+    print ""
+    print "afspiller	-	Lader dig bestemme hvilken afspiller der skal bruges." 
+  
   if helpfunktion == "alt":
     print ""
     print "Syntaks: radio <funktion>"
@@ -137,7 +143,9 @@ def indstil(indstilling):
       tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"'
       
       skrivtilfil(fil,tekst)
-
+    else:
+      help("indstil")
+      
 # * Alt vedr. selve afspillingen
 def afspil(radiokanalvalg):
   
@@ -238,4 +246,4 @@ try:
   else:
     pass
 except NameError:
-    help("alt")
+    help("indstil")
