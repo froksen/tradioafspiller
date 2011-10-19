@@ -3,6 +3,8 @@ from subprocess import Popen, PIPE, STDOUT
 import os
 import time
 import urllib
+import gst
+import pygst
 
 hjemmemappe = os.getenv("HOME")
 
@@ -16,10 +18,11 @@ afspillerprogramfallbackstandard = "vlc -I ncurses"
 # * Saetter hvilken der skal benyttes
 afspillerprogram = afspillerprogramstandard
 afspillerprogramfallback = afspillerprogramfallbackstandard
+gstreamer = "ja"
 
 # Hvis brugeren har brugt "indstil" funktionen og indtastet en anden afspiller, da vil det vare denne programmet bruger.
 try:
-  from brugervalg import afspillerprogram
+  from brugervalg import afspillerprogram, afspillerprogramfallback,gstreamer
 except ImportError:
   pass
 except NameError:
@@ -110,6 +113,7 @@ def help(helpfunktion):
     print "Syntaks: radio indstil <funktion>"
     print ""
     print "afspiller	-	Lader dig bestemme hvilken afspiller der skal bruges." 
+    print "gstreamer	-	Bestemme om programmet skal bruge GStreamer foerst eller anden afspiller"
   
   if helpfunktion == "alt":
     print ""
@@ -120,7 +124,36 @@ def help(helpfunktion):
     print "indstil -	Lader dig bestemme hvilket program du vil bruge til at afspille med"
     print "help	-	Viser dig denne side over funktioner"  
 
+
+
 def indstil(indstilling):
+    def skrivaendringer(afspillervalg,afspillervalgfallback,gstreamervalg):
+      # * Skriver valget til en fil.
+      fil = punktummappe + "brugervalg.py"
+      tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"' + '\ngstreamer ="'+gstreamervalg + '"'
+      skrivtilfil(fil,tekst)
+
+    if indstilling == "gstreamer":
+      print "*************************************************"
+      print " 	   Indstilling af foerste valgt afspiller"
+      print "*************************************************"
+      print " Her kan du vaelge om programmet foerst skal bruge"
+      print " Gstreamer eller bruge " + afspillerprogram
+      print " som foerste valg"
+      print "			--::::--"
+      gstreamervalgstandard = "ja"
+      gstreamervalg = raw_input("Vil du bruge GStreamer som foerste valg [ja] :")
+      gstreamervalg = gstreamervalg or gstreamervalgstandard
+
+      if gstreamervalg == "ja" or gstreamervalg == "nej":
+	skrivaendringer(afspillerprogram,afspillerprogramfallback,gstreamervalg)
+	print "Brug GStreamer som foerstevalg?: " + gstreamervalg
+	print "Indstillingen er gemt!"
+      else:
+	print "Du skal skrive enten ja eller nej. Intet er gemt, proev igen"
+      sys.exit()
+      
+
     if indstilling == "afspiller":
       print "*************************************************"
       print " 		Indstilling af Afspiller"
@@ -134,9 +167,14 @@ def indstil(indstilling):
       print " - Fallback afspiller: " + afspillerprogramfallback
       print ""
       print 'OBS: Hvis du vil benytte standard indstillingerne, skriv da "standard" (uden ") i felterne \n'
-      afspillervalg = raw_input("Skriv navnet paa afspilleren du vil bruge: ")
-      afspillervalgfallback = raw_input("Skriv navnet paa afspilleren du vil bruge, som 'fallback' hvis " + afspillervalg + " ikke kan afspille: ")
-      
+      afspillervalgstandard = "standard"
+      afspillervalg = raw_input("Skriv navnet paa afspilleren du vil bruge [standard] :")
+      afspillervalg = afspillervalg or afspillervalgstandard
+
+      afspillervalgfallbackstandard = "standard"
+      afspillervalgfallback = raw_input("Skriv navnet paa afspilleren du vil bruge, som 'fallback' hvis " + afspillervalg + " ikke kan afspille [standard]: ")
+      afspillervalgfallback = afspillervalgfallback or afspillervalgfallbackstandard
+
       if afspillervalg == "standard":
 	afspillervalg = afspillerprogramstandard
       if afspillervalgfallback == "standard":
@@ -147,17 +185,76 @@ def indstil(indstilling):
 	lavmappe(punktummappe)
       except OSError:
 	pass
+     
+      gstreamervalg = "ja"
       
-      # * Skriver valget til en fil.
-      fil = punktummappe + "brugervalg.py"
-      tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"'
-      
-      skrivtilfil(fil,tekst)
+      skrivaendringer(afspillervalg,afspillervalgfallback,gstreamervalg)
     else:
       help("indstil")
-      
-# * Alt vedr. selve afspillingen
+
+# * Alt vedr. selve afspillingen naar der bruges GStreamer
 def afspil(radiokanalvalg):
+  
+  for radiokanal in oversigt:
+    if radiokanal[0] == radiokanalvalg:
+      stationfundet = "ja"
+
+      radioKort = radiokanal[0]
+      radioUrl = radiokanal[1]
+      radioNavn = radiokanal[2]
+      radioCopyright = radiokanal[3]
+
+      # * Hvis radiourl'en slutter paa m3u, da laes filen og faar den "rigtige" URL inde i filen. Dette skyldes at mplayer ikke kan laese m3u (Winamp stream filer)
+      if radioUrl[-3:] == "m3u":
+	radioUrl = download(radioUrl)
+
+      print "*************************************************"
+      print " - Du lytter til: " + radioNavn
+      print " - Du afspiller med: " + "GStreamer"
+      print " "
+      print " - Copyright (Program): GPLv2"
+      print " - Copyright (Stream): " + radioCopyright
+      print "*************************************************"
+      print "Skriv:"
+      print " prog - Afspil med " + afspillerprogram
+      print " stop - Stoppe afspillingen, alt. tryk enter uden at skrive noget"
+      print "			--::::--"
+      # Indeholder alle informationerne til GStreamer afspilleren
+      music_stream_uri = radioUrl
+      player = gst.element_factory_make("playbin", "player")
+      player.set_property('uri', music_stream_uri)
+      player.set_state(gst.STATE_PLAYING)    
+      print "			--::::--"
+
+      def valgmenu():
+	standardvalg = "stop"
+	valg = raw_input('Valg [stop]:')
+	valg = valg or standardvalg
+
+	if valg == "stop" or valg == "" or valg == " ":
+	  sys.exit("Afspillingen af " + radioNavn + " er stoppet")
+	elif valg == "prog":
+	  player.set_state(gst.TASK_STOPPED)
+	  afspilprog(radioKort)
+	else:
+	  print ("Vaelg i mellem menupunkterne")
+	  valgmenu()
+      
+      #* Starter valg menuen i afspilleren
+      valgmenu()
+
+      stationfundet = "nej"
+ 
+  # * Hvis radiokanalen ikke blev fundet, da viser den listen over kanaler
+  if stationfundet == "nej":
+      help("afspil")
+
+      
+# * Alt vedr. selve afspillingen naar der skal bruges det valgte program!
+def afspilprog(radiokanalvalg):
+  # * Tjekker om "systemmappen", altsaa den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
+  peterlyberthtesten(afspillerprogram)
+
   
   for radiokanal in oversigt:
     if radiokanal[0] == radiokanalvalg:
@@ -234,8 +331,6 @@ def peterlyberthtesten(afspillerprogram):
 	time.sleep(4)
 	peterlyberthtesten(afspillerprogram)
 
-# * Tjekker om "systemmappen", altsaa den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter koerer testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
-peterlyberthtesten(afspillerprogram)
 
 
 
@@ -244,7 +339,12 @@ peterlyberthtesten(afspillerprogram)
 # * Alt vedr. valg af funktion!
 try:
   if hovedfunktion == "afspil":
-    afspil(underfunktion)
+    if gstreamer == "ja":
+      afspil(underfunktion)
+    elif gstreamer == "nej":
+      afspilprog(underfunktion)
+    else:
+      afspil(underfunktion)
   else:
     pass
 except NameError:
