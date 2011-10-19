@@ -1,2 +1,2 @@
 #Er saadan set bare en placeholder, for at man undgaar at skrive hele python linjen
-python $HOME/bin/radio.py $1 $2
+python2 $HOME/bin/radio.py $1 $2
