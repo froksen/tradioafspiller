@@ -2,6 +2,7 @@ import sys
 from subprocess import Popen, PIPE, STDOUT
 import os
 import time
+import urllib
 
 hjemmemappe = os.getenv("HOME")
 
@@ -71,6 +72,15 @@ oversigt = [
   ("skalafm", "http://skala.radiostreaming.dk/Skala128.m3u","Skala.FM", "Skala.FM"),
   ("thevoice", "http://stream.voice.dk/voice128","The Voice", "The Voice"),  
   ]
+
+def download(url):
+	onlineFil = urllib.urlopen(url)
+	onlineread = onlineFil.readline()
+	onlineread = onlineread.replace ('\n', '')
+	onlineread = onlineread.replace ('\r', '')
+	return onlineread
+
+	onlineFil.close()
 
 
 def skrivtilfil(tekstfil,tekst):
@@ -152,18 +162,26 @@ def afspil(radiokanalvalg):
   for radiokanal in oversigt:
     if radiokanal[0] == radiokanalvalg:
       stationfundet = "ja"
-      
+	
+      radioUrl = radiokanal[1]
+      radioNavn = radiokanal[2]
+      radioCopyright = radiokanal[3]
+
+      # * Hvis radiourl'en slutter paa m3u, da laes filen og faar den "rigtige" URL inde i filen. Dette skyldes at mplayer ikke kan laese m3u (Winamp stream filer)
+      if radioUrl[-3:] == "m3u":
+	radioUrl = download(radioUrl)
+
       print "*************************************************"
-      print " - Du lytter til: " + radiokanal[2]
+      print " - Du lytter til: " + radioNavn
       print " - Du afspiller med: " + afspillerprogram
       print " "
       print " - Copyright (Program): GPLv2"
-      print " - Copyright (Stream): " + radiokanal[3]
+      print " - Copyright (Stream): " + radioCopyright
       print "*************************************************"
       print "Tryk Ctrl+C eller q for at stoppe afspillingen"
       
       # * Prover med den primaaere afspiller foerst
-      player_choice_and_radio_station = afspillerprogram + " " + radiokanal[1]
+      player_choice_and_radio_station = afspillerprogram + " " + radioUrl
       p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
       output = p.stdout.read()
       
