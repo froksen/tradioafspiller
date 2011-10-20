@@ -337,15 +337,28 @@ def peterlyberthtesten(afspillerprogram):
 
 
 # * Alt vedr. valg af funktion!
+
+# * Hvis hovedfuktionen er "help", samt hvis man ikke skriver noget efter radio
 try:
   if hovedfunktion == "help":
     help(underfunktion)
   else:
-    help("alt")
+    pass
 except NameError:
     help("alt")
     sys.exit()
 
+# * Hvis hovedfuktionen er en "radiokanal", altsaa til forkortelse af afspillingskommandoen
+try:
+  for radiokanal in oversigt:
+    if hovedfunktion ==  radiokanal[0]:
+      afspil(radiokanal[0])
+    else:
+      pass
+except OSError:
+   pass
+
+# * Hvis hovedfuktionen er "afspil"
 try:
   if hovedfunktion == "afspil":
     if gstreamer == "ja":
@@ -360,6 +373,7 @@ except NameError:
     help("afspil")
     sys.exit()
 
+# * Hvis hovedfuktionen er "indstil"
 try:
   if hovedfunktion == "indstil":
     indstil(underfunktion)
