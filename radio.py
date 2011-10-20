@@ -338,6 +338,15 @@ def peterlyberthtesten(afspillerprogram):
 
 # * Alt vedr. valg af funktion!
 try:
+  if hovedfunktion == "help":
+    help(underfunktion)
+  else:
+    help("alt")
+except NameError:
+    help("alt")
+    sys.exit()
+
+try:
   if hovedfunktion == "afspil":
     if gstreamer == "ja":
       afspil(underfunktion)
@@ -349,14 +358,7 @@ try:
     pass
 except NameError:
     help("afspil")
-
-try:
-  if hovedfunktion == "help":
-    help(underfunktion)
-  else:
-    pass
-except NameError:
-    help("alt")
+    sys.exit()
 
 try:
   if hovedfunktion == "indstil":
@@ -365,3 +367,4 @@ try:
     pass
 except NameError:
     help("indstil")
+    sys.exit()
