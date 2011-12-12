@@ -131,6 +131,12 @@ def help(helpfunktion):
 
 def indstil(indstilling):
     def skrivaendringer(afspillervalg,afspillervalgfallback,gstreamervalg):
+
+      # * Opretter punktmappen, hvis den ikke findes
+      try:
+	lavmappe(punktummappe)
+      except OSError:
+	pass
       # * Skriver valget til en fil.
       fil = punktummappe + "brugervalg.py"
       tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"' + '\ngstreamer ="'+gstreamervalg + '"'
@@ -182,12 +188,6 @@ def indstil(indstilling):
 	afspillervalg = afspillerprogramstandard
       if afspillervalgfallback == "standard":
 	afspillervalgfallback = afspillerprogramfallbackstandard
-      
-      # * Opretter punktmappen, hvis den ikke findes
-      try:
-	lavmappe(punktummappe)
-      except OSError:
-	pass
      
       gstreamervalg = "ja"
       

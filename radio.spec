@@ -18,7 +18,7 @@
 # norootforbuild
 
 Name:           radio
-Version:	svnr16
+Version:	svnr17
 Release:	1
 License:	GNU GPLv2
 Summary:	Et script der afspiller radio i terminalen
@@ -31,7 +31,7 @@ Packager: 	Ole Holm Frandsen "Froksen"
 #PreReq:
 #Provides:
 BuildRoot:      %{_tmppath}/%{name}-%{version}-build
-Requires: 	vlc,mplayer,gstreamer-0_10
+Requires: 	vlc,mplayer,gstreamer-0_10,python-gstreamer-0_10,python-base,python-devel,gstreamer-0_10-fluendo-mp3, libmp3, libmp3lame0, libmpeg2-0
 BuildArch:	noarch
 
 %description
