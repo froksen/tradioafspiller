@@ -7,44 +7,101 @@ import os
 import time
 import urllib
 import gst
-import pygst
+import pygst 
 
-hjemmemappe = os.getenv("HOME")
+class RadioAfspiller(): 
+    radioAfspiller = "gstreamer"
+    radioNavn = "Ukendt"
+    radioForkortelse ="ukendt"
+    radioUrl = "Null"
+    radioCopyright = "Ukendt"
+    
+    def setradioAfspiller(self, Afspiller):
+        self.radioAfspiller = Afspiller
+        
+    def getradioAfspiller(self):
+        return self.radioAfspiller
+    
+    def setradioForkortelse(self, Forkortelse):
+        self.radioForkortelse = Forkortelse
+    
+    def getForkortelse(self):
+        return self.radioForkortelse
+    
+    def fixradioUrl(self,  Url):
+        # Henter og åbner den onlinefil
+        onlineFil = urllib.urlopen(Url)
+        onlineread = onlineFil.readline()
+        onlineread = onlineread.replace ('\n', '')
+        onlineread = onlineread.replace ('\r', '')
+        onlineFil.close()
+        
+        return onlineread
+        
+    def setradioUrl(self, Url):       
+        self.radioUrl = Url
+        
+    def getradioUrl(self):
+        return self.radioUrl
+    
+    def setradioNavn(self, Navn):
+        self.radioNavn = Navn
+    
+    def getradioNavn(self):
+        return self.radioNavn
+    
+    def setradioCopyright(self, copyright):
+        self.radioCopyright = copyright
+    
+    def getradioCopyright(self):
+        return self.radioCopyright
+    
+    def setupUI(self):
+        print "*************************************************"
+        print " - Du lytter til: " + self.getradioNavn()
+        print " - Du afspiller med: " + "GStreamer"
+        print " "
+        print " - Copyright (Program): GPLv2"
+        print " - Copyright (Stream): " + self.getradioCopyright()
+        print "*************************************************"
+        print "Skriv:"
+       # print " prog - Afspil med " + self.getradioAfspiller()
+        print " stop - Stoppe afspillingen, alt. tryk enter uden at skrive noget"
+        print "			--::::--"
+   
+    def playRadio(self):
+        music_stream_uri = self.getradioUrl()
+        
+        if music_stream_uri[-3:] == "m3u":
+            music_stream_uri = self.fixradioUrl(music_stream_uri)
+        
+        #Sætter Ui'en som brugeren ser.
+        self.setupUI()
+        
+        player = gst.element_factory_make("playbin", "player")
+        player.set_property('uri', music_stream_uri)
+        player.set_state(gst.STATE_PLAYING)    
+        raw_input('Valg [stop]:')
 
-punktummappe = hjemmemappe + "/.tradioafspiller/"
-sys.path.append(punktummappe)
-  
-# * Standard opsætningen for afspillere
-afspillerprogramstandard = "mplayer"
-afspillerprogramfallbackstandard = "vlc -I ncurses"
 
-# * Sætter hvilken der skal benyttes
-afspillerprogram = afspillerprogramstandard
-afspillerprogramfallback = afspillerprogramfallbackstandard
-gstreamer = "ja"
+class RadioHelp():
+    def kanaler(self):
+        print "Kanal forkortelse" + " - " + "Kanal navn"
+        for kanalINFO in oversigt:
+            print kanalINFO[0] + " - " + kanalINFO[2]
+            
+    def funktioner(self):
+        print ""
+        print "Syntaks: radio <funktion>"
+        print ""
+        print "afspil	-	Afspiller en given radio kanal. Eksempel: radio afspil drp2"
+        #print "help kanaler -	Viser en liste over kanaler"
+        #print "indstil -	Lader dig bestemme hvilket program du vil bruge til at afspille med"
+        print "help	-	Viser dig denne side over funktioner"  
 
-# Hvis brugeren har brugt "indstil" funktionen og indtastet en anden afspiller, da vil det vare denne programmet bruger.
-try:
-  from brugervalg import afspillerprogram, afspillerprogramfallback,gstreamer
-except ImportError:
-  pass
-except NameError:
-  pass
-
-
-#  * Sætter variablerne fra terminal inputtet.
-try:
-  hovedfunktion = sys.argv[1]
-except IndexError:
-  pass
-
-try:
-  underfunktion = sys.argv[2]
-except IndexError:
-  pass
-
-
-
+#Sætter standard variabler
+radioafspiller = RadioAfspiller()
+radiohelp = RadioHelp()
 
 # * Oplysninger om kanaler. Skal læses på følgende måde
 # * ("Forkortelse","Url-Til-lyd","Beskrivelse",copyright-for-stream)
@@ -79,309 +136,47 @@ oversigt = [
   ("thevoice", "http://stream.voice.dk/voice128","The Voice", "The Voice"),  
   ]
 
-def download(url):
-	onlineFil = urllib.urlopen(url)
-	onlineread = onlineFil.readline()
-	onlineread = onlineread.replace ('\n', '')
-	onlineread = onlineread.replace ('\r', '')
-	return onlineread
-
-	onlineFil.close()
-
-
-def skrivtilfil(tekstfil,tekst):
-  fil = open(tekstfil, "w")
-  fil.write(tekst)
-  fil.close()
-
-def lavmappe(mappenavn):
-  os.mkdir(mappenavn)
-
-# * Alt vedr. hjælp funktionen
-def help(helpfunktion):  
-  if helpfunktion == "afspil":
-    print ""
-    print "Syntaks: radio afspil <kanalvalg>"
-    print ""
-    print "<kanalvalg>	-	Beskrivelse"
-    print "----------------------------------"
+def onRadioselected(radioForkortelse):
+    kanalfundet = 0
+    
     for kanal in oversigt:
-      print kanal[0]+"	-	"+kanal[2]
-   
-  if helpfunktion == "kanaler":
-    help("afspil")
-  
-  if helpfunktion == "indstil":
-    print ""
-    print "Syntaks: radio indstil <funktion>"
-    print ""
-    print "afspiller	-	Lader dig bestemme hvilken afspiller der skal bruges." 
-    print "gstreamer	-	Bestemme om programmet skal bruge GStreamer først eller anden afspiller"
-  
-  if helpfunktion == "alt":
-    print ""
-    print "Syntaks: radio <funktion>"
-    print ""
-    print "afspil	-	Afspiller en given radio kanal. Eksempel: radio afspil drp2"
-    print "help kanaler -	Viser en liste over kanaler"
-    print "indstil -	Lader dig bestemme hvilket program du vil bruge til at afspille med"
-    print "help	-	Viser dig denne side over funktioner"  
+        if kanal[0] == radioForkortelse:
+           radioafspiller.setradioNavn(kanal[2])
+           radioafspiller.setradioUrl(kanal[1])
+           radioafspiller.setradioCopyright(kanal[3])
+           
+           kanalfundet = 1
+            
+           #Starter affspillingingen
+           radioafspiller.playRadio()
+           
 
-
-
-def indstil(indstilling):
-    def skrivaendringer(afspillervalg,afspillervalgfallback,gstreamervalg):
-
-      # * Opretter punktmappen, hvis den ikke findes
-      try:
-	lavmappe(punktummappe)
-      except OSError:
-	pass
-      # * Skriver valget til en fil.
-      fil = punktummappe + "brugervalg.py"
-      tekst = 'afspillerprogram="'+afspillervalg +'" \nafspillerprogramfallback ="'+afspillervalgfallback + '"' + '\ngstreamer ="'+gstreamervalg + '"'
-      skrivtilfil(fil,tekst)
-
-    if indstilling == "gstreamer":
-      print "*************************************************"
-      print " 	   Indstilling af første valgt afspiller"
-      print "*************************************************"
-      print " Her kan du vælge om programmet først skal bruge"
-      print " Gstreamer eller bruge " + afspillerprogram
-      print " som første valg"
-      print "			--::::--"
-      gstreamervalgstandard = "ja"
-      gstreamervalg = raw_input("Vil du bruge GStreamer som første valg [ja] :")
-      gstreamervalg = gstreamervalg or gstreamervalgstandard
-
-      if gstreamervalg == "ja" or gstreamervalg == "nej":
-	skrivaendringer(afspillerprogram,afspillerprogramfallback,gstreamervalg)
-	print "Brug GStreamer som førstevalg?: " + gstreamervalg
-	print "Indstillingen er gemt!"
-      else:
-	print "Du skal skrive enten ja eller nej. Intet er gemt, prøv igen"
-      sys.exit()
-      
-
-    if indstilling == "afspiller":
-      print "*************************************************"
-      print " 		Indstilling af Afspiller"
-      print "*************************************************"
-      print "Her kan du indstille hvilke afspillere der bruges"
-      print "når der afspilles en radiokanal. Både som "
-      print "primær og som fallback"
-      print ""
-      print "Du bruger PT. følgende afspillere"
-      print " - Primær afspiller: " + afspillerprogram
-      print " - Fallback afspiller: " + afspillerprogramfallback
-      print ""
-      print 'OBS: Hvis du vil benytte standard indstillingerne, skriv da "standard" (uden ") i felterne \n'
-      afspillervalgstandard = "standard"
-      afspillervalg = raw_input("Skriv navnet på afspilleren du vil bruge [standard] :")
-      afspillervalg = afspillervalg or afspillervalgstandard
-
-      afspillervalgfallbackstandard = "standard"
-      afspillervalgfallback = raw_input("Skriv navnet på afspilleren du vil bruge, som 'fallback' hvis " + afspillervalg + " ikke kan afspille [standard]: ")
-      afspillervalgfallback = afspillervalgfallback or afspillervalgfallbackstandard
-
-      if afspillervalg == "standard":
-	afspillervalg = afspillerprogramstandard
-      if afspillervalgfallback == "standard":
-	afspillervalgfallback = afspillerprogramfallbackstandard
-     
-      gstreamervalg = "ja"
-      
-      skrivaendringer(afspillervalg,afspillervalgfallback,gstreamervalg)
+    if kanalfundet == 0:
+        radiohelp.kanaler()
+        
+        print "\n \nUkendt Kanal. Se listen herover"
     else:
-      help("indstil")
+        pass
 
-# * Alt vedr. selve afspillingen når der bruges GStreamer
-def afspil(radiokanalvalg):
-  
-  for radiokanal in oversigt:
-    if radiokanal[0] == radiokanalvalg:
-      stationfundet = "ja"
-
-      radioKort = radiokanal[0]
-      radioUrl = radiokanal[1]
-      radioNavn = radiokanal[2]
-      radioCopyright = radiokanal[3]
-
-      # * Hvis radiourl'en slutter på m3u, da læs filen og får den "rigtige" URL inde i filen. Dette skyldes at mplayer ikke kan læse m3u (Winamp stream filer)
-      if radioUrl[-3:] == "m3u":
-	radioUrl = download(radioUrl)
-
-      print "*************************************************"
-      print " - Du lytter til: " + radioNavn
-      print " - Du afspiller med: " + "GStreamer"
-      print " "
-      print " - Copyright (Program): GPLv2"
-      print " - Copyright (Stream): " + radioCopyright
-      print "*************************************************"
-      print "Skriv:"
-      print " prog - Afspil med " + afspillerprogram
-      print " stop - Stoppe afspillingen, alt. tryk enter uden at skrive noget"
-      print "			--::::--"
-      # Indeholder alle informationerne til GStreamer afspilleren
-      music_stream_uri = radioUrl
-      player = gst.element_factory_make("playbin", "player")
-      player.set_property('uri', music_stream_uri)
-      player.set_state(gst.STATE_PLAYING)    
-      print "			--::::--"
-
-      def valgmenu():
-	standardvalg = "stop"
-	valg = raw_input('Valg [stop]:')
-	valg = valg or standardvalg
-
-	if valg == "stop" or valg == "" or valg == " ":
-	  sys.exit("Afspillingen af " + radioNavn + " er stoppet")
-	elif valg == "prog":
-	  player.set_state(gst.TASK_STOPPED)
-	  afspilprog(radioKort)
-	else:
-	  print ("Vælg i mellem menupunkterne")
-	  valgmenu()
-      
-      #* Starter valg menuen i afspilleren
-      valgmenu()
-
-      stationfundet = "nej"
- 
-  # * Hvis radiokanalen ikke blev fundet, da viser den listen over kanaler
-  if stationfundet == "nej":
-      help("afspil")
-
-      
-# * Alt vedr. selve afspillingen når der skal bruges det valgte program!
-def afspilprog(radiokanalvalg):
-  # * Tjekker om "systemmappen", altså den gemte mappe med information om afspiller osv. findes i $HOME mappen. Derefter kører testen om afspiller programmet findes. Opkaldt efter ham som ikke liige tjekkede om mplayer var installeret.
-  peterlyberthtesten(afspillerprogram)
-
-  
-  for radiokanal in oversigt:
-    if radiokanal[0] == radiokanalvalg:
-      stationfundet = "ja"
-	
-      radioUrl = radiokanal[1]
-      radioNavn = radiokanal[2]
-      radioCopyright = radiokanal[3]
-
-      # * Hvis radiourl'en slutter på m3u, da læs filen og får den "rigtige" URL inde i filen. Dette skyldes at mplayer ikke kan læse m3u (Winamp stream filer)
-      if radioUrl[-3:] == "m3u":
-	radioUrl = download(radioUrl)
-
-      print "*************************************************"
-      print " - Du lytter til: " + radioNavn
-      print " - Du afspiller med: " + afspillerprogram
-      print " "
-      print " - Copyright (Program): GPLv2"
-      print " - Copyright (Stream): " + radioCopyright
-      print "*************************************************"
-      print "Tryk Ctrl+C eller q for at stoppe afspillingen"
-      
-      # * Prover med den primåere afspiller først
-      player_choice_and_radio_station = afspillerprogram + " " + radioUrl
-      p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-      output = p.stdout.read()
-      
-      print "*************************************************"
-      print " - Du lytter til: " + radiokanal[2]
-      print " - Du afspiller med (Fallback): " + afspillerprogramfallback
-      print " "
-      print " - Copyright (Program): GPLv2"
-      print " - Copyright (Stream): " + radiokanal[3]
-      print "*************************************************"
-      print "Tryk Ctrl+C eller q for at stoppe afspillingen"
-
-      # * Hvis primære afspiller fejler, da bruger den fallback. 
-      player_choice_and_radio_station = afspillerprogramfallback + " " + radiokanal[1]
-      p = Popen(player_choice_and_radio_station, shell=True, stdin=PIPE, stdout=PIPE, stderr=STDOUT, close_fds=True)
-      output = p.stdout.read()
-
-
-      stationfundet = "nej"
- 
-  # * Hvis radiokanalen ikke blev fundet, da viser den listen over kanaler
-  if stationfundet == "nej":
-      help("afspil")
-
-
-
-
-# * Tjekker om afspillingsprogrammet findes, ellers stopper den afviklingen af scriptet og beder om at det bliver installeret.
-def peterlyberthtesten(afspillerprogram):
-    afspiller = afspillerprogram.split( )
-    if os.path.exists("/usr/bin/"+afspiller[0]):
-      pass
-    else:
-      print "\n"
-      print "*************************************..::Hey du!::..***********************************"
-      print ("Fejl! Du har ikke afspillingsprogrammet " + afspiller[0] + " installeret. Installer programmet eller du kan benytte en anden afspiller \n")
-      print "1) Brug en anden afspiller"
-      print "2) Afslut programmet"
-      print ""
-      valg = raw_input("Skriv dit valg og afslut med at trykke med ENTER: ")
-      if valg == "1":
-	indstil("afspiller")
-      elif valg == "2":
-	print "Program afsluttet"
-	sys.exit()
-      else:
-	print ""
-	print ""
-	print "Du skal benytte dig af en af mulighederne i listen"
-	time.sleep(4)
-	peterlyberthtesten(afspillerprogram)
-
-
-
-
-
-
-# * Alt vedr. valg af funktion!
-
-# * Hvis hovedfuktionen er "help", samt hvis man ikke skriver noget efter radio
+arg1 = 0
 try:
-  if hovedfunktion == "help":
-    help(underfunktion)
-  else:
+    arg1 = sys.argv[1]
+except IndexError:
+    radiohelp.funktioner()
     pass
-except NameError:
-    help("alt")
-    sys.exit()
 
-# * Hvis hovedfuktionen er en "radiokanal", altså til forkortelse af afspillingskommandøn
+arg2 = 0
 try:
-  for radiokanal in oversigt:
-    if hovedfunktion ==  radiokanal[0]:
-      afspil(radiokanal[0])
-    else:
-      pass
-except OSError:
-   pass
-
-# * Hvis hovedfuktionen er "afspil"
-try:
-  if hovedfunktion == "afspil":
-    if gstreamer == "ja":
-      afspil(underfunktion)
-    elif gstreamer == "nej":
-      afspilprog(underfunktion)
-    else:
-      afspil(underfunktion)
-  else:
+    arg2 = sys.argv[2]
+except IndexError:
     pass
-except NameError:
-    help("afspil")
-    sys.exit()
 
-# * Hvis hovedfuktionen er "indstil"
-try:
-  if hovedfunktion == "indstil":
-    indstil(underfunktion)
-  else:
-    pass
-except NameError:
-    help("indstil")
-    sys.exit()
+if arg1 == "afspil":
+   onRadioselected(arg2)
+elif arg1 == "help":
+    radiohelp.funktioner()
+else:
+    for kanal in oversigt:
+        if kanal[0] == arg1:
+             onRadioselected(arg1)
+            
