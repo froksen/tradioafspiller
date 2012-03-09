@@ -1,0 +1,44 @@
+..::Hvad er tradioafspiller?::..
+Programmet er et forsøg på at lave en simpel radioafspiller der kører i 
+terminalen.
+
+Dette kan være smart hvis man f.eks. bruger Yakuake til KDE eller Guake 
+til f.eks. GNOME. Da kan man hurtigt trække konsollen "ned" og skrive en 
+kort kommando hvorefter der er dejlig musik fra f.eks. Danmarks Radio's 
+P3.
+
+Det er dog en meget tidlig version af programmet.
+
+..::Hvordan "installeres" programmet::..
+*RPM*
+Du kan nu hente og installere programmet som en rpm-fil. Du kan hente den 
+seneste version via mit "openSUSE Buildservice Repos" til enten openSUSE 
+12.1 eller Fedora 16.
+
+openSUSE 12.1: 
+http://download.opensuse.org/repositories/home:/froksen/openSUSE_12.1/
+
+Fedora 16: 
+http://download.opensuse.org/repositories/home:/froksen/Fedora_16/
+
+*Manuelt*
+Du kan hente og installere programmet manuelt. Dette kan være nødvendigt 
+hvis du ikke bruger et rpm-system eller vil have kildekoden.
+
+Du skal du først hente programmet via SVN-repos. Herefter kopireres filen 
+"radio" ind i din bin/ mappe som ligger i din hjemmemappe ($HOME/bin/).
+
+Hvis du oplever følgende fejl når du skriver radio i terminalen: "bash: 
+$HOME/bin/radio: Adgang nægtet" , skriv da følgende chmod a+x 
+$HOME/bin/radio
+
+..::Sådan bruges programmet::..
+Når installeret, så åbnes konsollen/terminalen og du skriver f.eks. radio 
+afspil drp3 , da afspilles Danmarks Radio's kanal P3. Hvis du vil have 
+mere information omkring hvad programmet kan, skriv da radio help
+
+(Uddrag af help-sektionen) Syntaks: radio "funktion"
+
+afspil - Afspiller en given radio kanal. Eksempel: radio afspil drp2
+
+help - Viser dig denne side over funktioner
