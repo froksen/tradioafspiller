@@ -42,3 +42,6 @@ mere information omkring hvad programmet kan, skriv da radio help
 afspil - Afspiller en given radio kanal. Eksempel: radio afspil drp2
 
 help - Viser dig denne side over funktioner
+
+*Kræver*
+gstreamer-plugins-ugly,gstreamer-0_10,python-gstreamer-0_10,python-base,python-devel,gstreamer-0_10-fluendo-mp3, libmp3, libmp3lame0, libmpeg2-0
