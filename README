@@ -18,8 +18,14 @@ seneste version via mit "openSUSE Buildservice Repos" til enten openSUSE
 openSUSE 12.1: 
 http://download.opensuse.org/repositories/home:/froksen/openSUSE_12.1/
 
+openSUSE 12.2
+http://download.opensuse.org/repositories/home:/froksen/openSUSE_12.2/
+
 Fedora 16: 
 http://download.opensuse.org/repositories/home:/froksen/Fedora_16/
+
+Fedora 17:
+http://download.opensuse.org/repositories/home:/froksen/Fedora_17
 
 *Manuelt*
 Du kan hente og installere programmet manuelt. Dette kan være nødvendigt 
